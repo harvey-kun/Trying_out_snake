@@ -33,11 +33,40 @@
             margin: 20px 0;
         }
 
-        #resetButton {
+        .buttons {
+            margin: 20px 0;
+        }
+
+        button {
             padding: 10px 20px;
             font-size: 16px;
             cursor: pointer;
+            margin: 5px;
         }
+
+        .direction-buttons {
+            display: grid;
+            grid-template-areas:
+                ". up ."
+                "left . right"
+                ". down .";
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: 1fr 1fr 1fr;
+            gap: 10px;
+            width: 150px;
+            margin: 20px auto;
+        }
+
+        .direction-buttons button {
+            width: 50px;
+            height: 50px;
+            font-size: 20px;
+        }
+
+        #up { grid-area: up; }
+        #left { grid-area: left; }
+        #right { grid-area: right; }
+        #down { grid-area: down; }
     </style>
 </head>
 <body>
@@ -45,7 +74,16 @@
         <h1>Snake Game</h1>
         <canvas id="gameCanvas" width="400" height="400"></canvas>
         <div id="score">Score: 0</div>
-        <button id="resetButton">Reset Game</button>
+        <div class="buttons">
+            <button id="startButton">Start Game</button>
+            <button id="resetButton">Reset Game</button>
+        </div>
+        <div class="direction-buttons">
+            <button id="up">↑</button>
+            <button id="left">←</button>
+            <button id="right">→</button>
+            <button id="down">↓</button>
+        </div>
     </div>
     <script>
         // Get canvas and context
@@ -59,7 +97,8 @@
         let dx = gridSize; // Horizontal movement (right initially)
         let dy = 0; // Vertical movement
         let score = 0;
-        let gameRunning = true;
+        let gameRunning = false;
+        let gameInterval;
 
         // Generate random food position
         function randomFood() {
@@ -125,6 +164,7 @@
         // Handle game over
         function gameOver() {
             gameRunning = false;
+            clearInterval(gameInterval);
             alert(`Game Over! Your score: ${score}`);
             resetGame();
         }
@@ -137,37 +177,37 @@
             score = 0;
             document.getElementById('score').textContent = `Score: ${score}`;
             randomFood();
-            gameRunning = true;
+            gameRunning = false;
+            clearInterval(gameInterval);
         }
 
-        // Change direction on key press
-        function changeDirection(event) {
+        // Start game
+        function startGame() {
+            if (!gameRunning) {
+                gameRunning = true;
+                gameInterval = setInterval(gameLoop, 100);
+            }
+        }
+
+        // Change direction
+        function changeDirection(direction) {
             if (!gameRunning) return;
 
-            const LEFT_KEY = 37;
-            const RIGHT_KEY = 39;
-            const UP_KEY = 38;
-            const DOWN_KEY = 40;
-
-            const keyPressed = event.keyCode;
             const goingUp = dy === -gridSize;
             const goingDown = dy === gridSize;
             const goingRight = dx === gridSize;
             const goingLeft = dx === -gridSize;
 
-            if (keyPressed === LEFT_KEY && !goingRight) {
+            if (direction === 'left' && !goingRight) {
                 dx = -gridSize;
                 dy = 0;
-            }
-            if (keyPressed === UP_KEY && !goingDown) {
+            } else if (direction === 'up' && !goingDown) {
                 dx = 0;
                 dy = -gridSize;
-            }
-            if (keyPressed === RIGHT_KEY && !goingLeft) {
+            } else if (direction === 'right' && !goingLeft) {
                 dx = gridSize;
                 dy = 0;
-            }
-            if (keyPressed === DOWN_KEY && !goingUp) {
+            } else if (direction === 'down' && !goingUp) {
                 dx = 0;
                 dy = gridSize;
             }
@@ -181,11 +221,29 @@
 
         // Initialize
         randomFood();
-        document.addEventListener('keydown', changeDirection);
-        document.getElementById('resetButton').addEventListener('click', resetGame);
+        draw(); // Draw initial state
 
-        // Start game loop (runs every 100ms)
-        setInterval(gameLoop, 100);
+        // Event listeners
+        document.getElementById('startButton').addEventListener('click', startGame);
+        document.getElementById('resetButton').addEventListener('click', resetGame);
+        document.getElementById('up').addEventListener('click', () => changeDirection('up'));
+        document.getElementById('left').addEventListener('click', () => changeDirection('left'));
+        document.getElementById('right').addEventListener('click', () => changeDirection('right'));
+        document.getElementById('down').addEventListener('click', () => changeDirection('down'));
+
+        // Keyboard support (optional, for desktop)
+        document.addEventListener('keydown', (event) => {
+            const keyPressed = event.keyCode;
+            const LEFT_KEY = 37;
+            const RIGHT_KEY = 39;
+            const UP_KEY = 38;
+            const DOWN_KEY = 40;
+
+            if (keyPressed === LEFT_KEY) changeDirection('left');
+            else if (keyPressed === UP_KEY) changeDirection('up');
+            else if (keyPressed === RIGHT_KEY) changeDirection('right');
+            else if (keyPressed === DOWN_KEY) changeDirection('down');
+        });
     </script>
 </body>
 </html>
