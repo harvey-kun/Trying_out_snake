@@ -67,6 +67,13 @@
         #left { grid-area: left; }
         #right { grid-area: right; }
         #down { grid-area: down; }
+
+        /* Hide directional buttons on desktop (screens wider than 768px) */
+        @media (min-width: 768px) {
+            .direction-buttons {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
