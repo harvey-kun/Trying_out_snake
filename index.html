@@ -53,6 +53,7 @@
             grid-template-columns: 1fr 1fr 1fr;
             grid-template-rows: 1fr 1fr 1fr;
             gap: 10px;
+            width: 170px;
             margin: 20px auto;
         }
 
@@ -109,4 +110,140 @@
                     randomFood();
                     return;
                 }
-           
+            }
+        }
+
+        // Draw the game
+        function draw() {
+            // Clear canvas
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw snake
+            ctx.fillStyle = '#0f0';
+            for (let segment of snake) {
+                ctx.fillRect(segment.x, segment.y, gridSize, gridSize);
+            }
+
+            // Draw food
+            ctx.fillStyle = '#f00';
+            ctx.fillRect(food.x, food.y, gridSize, gridSize);
+        }
+
+        // Update game state
+        function update() {
+            if (!gameRunning) return;
+
+            // Move snake head
+            const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+            snake.unshift(head);
+
+            // Check if food eaten
+            if (head.x === food.x && head.y === food.y) {
+                score++;
+                document.getElementById('score').textContent = `Score: ${score}`;
+                randomFood();
+            } else {
+                // Remove tail if no food eaten
+                snake.pop();
+            }
+
+            // Check collisions
+            // Wall collision
+            if (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height) {
+                gameOver();
+            }
+            // Self collision
+            for (let i = 1; i < snake.length; i++) {
+                if (head.x === snake[i].x && head.y === snake[i].y) {
+                    gameOver();
+                }
+            }
+        }
+
+        // Handle game over
+        function gameOver() {
+            gameRunning = false;
+            clearInterval(gameInterval);
+            alert(`Game Over! Your score: ${score}`);
+            resetGame();
+        }
+
+        // Reset game
+        function resetGame() {
+            snake = [{ x: 200, y: 200 }];
+            dx = gridSize;
+            dy = 0;
+            score = 0;
+            document.getElementById('score').textContent = `Score: ${score}`;
+            randomFood();
+            gameRunning = false;
+            clearInterval(gameInterval);
+        }
+
+        // Start game
+        function startGame() {
+            if (!gameRunning) {
+                gameRunning = true;
+                gameInterval = setInterval(gameLoop, 100);
+            }
+        }
+
+        // Change direction
+        function changeDirection(direction) {
+            if (!gameRunning) return;
+
+            const goingUp = dy === -gridSize;
+            const goingDown = dy === gridSize;
+            const goingRight = dx === gridSize;
+            const goingLeft = dx === -gridSize;
+
+            if (direction === 'left' && !goingRight) {
+                dx = -gridSize;
+                dy = 0;
+            } else if (direction === 'up' && !goingDown) {
+                dx = 0;
+                dy = -gridSize;
+            } else if (direction === 'right' && !goingLeft) {
+                dx = gridSize;
+                dy = 0;
+            } else if (direction === 'down' && !goingUp) {
+                dx = 0;
+                dy = gridSize;
+            }
+        }
+
+        // Game loop
+        function gameLoop() {
+            update();
+            draw();
+        }
+
+        // Initialize
+        randomFood();
+        draw(); // Draw initial state
+
+        // Event listeners
+        document.getElementById('startButton').addEventListener('click', startGame);
+        document.getElementById('resetButton').addEventListener('click', resetGame);
+        document.getElementById('up').addEventListener('click', () => changeDirection('up'));
+        document.getElementById('left').addEventListener('click', () => changeDirection('left'));
+        document.getElementById('right').addEventListener('click', () => changeDirection('right'));
+        document.getElementById('down').addEventListener('click', () => changeDirection('down'));
+
+        // Keyboard support (optional, for desktop)
+        document.addEventListener('keydown', (event) => {
+            const keyPressed = event.keyCode;
+            const LEFT_KEY = 37;
+            const RIGHT_KEY = 39;
+            const UP_KEY = 38;
+            const DOWN_KEY = 40;
+
+            if (keyPressed === LEFT_KEY) changeDirection('left');
+            else if (keyPressed === UP_KEY) changeDirection('up');
+            else if (keyPressed === RIGHT_KEY) changeDirection('right');
+            else if (keyPressed === DOWN_KEY) changeDirection('down');
+        });
+    </script>
+</body>
+</html>
